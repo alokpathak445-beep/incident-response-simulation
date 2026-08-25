@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}SIEM Log Analysis & Threat Explorer{% endblock %}
+
+{% block page_title %}
+  <i class="fa-solid fa-list-check" style="color: var(--accent-cyan);"></i> Windows SIEM Log Explorer
+{% endblock %}
+
+{% block content %}
+  <!-- Educational Disclaimer Alert -->
+  <div style="background-color: rgba(15, 23, 42, 0.85); border: 1px solid var(--bg-surface-border); border-left: 4px solid var(--accent-cyan); border-radius: var(--border-radius-sm); padding: 0.85rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; font-size: 0.85rem; color: var(--text-secondary);">
+      <i class="fa-solid fa-circle-info" style="color: var(--accent-cyan); font-size: 1.1rem;"></i>
+      <span>
+        <strong>Simulated Dataset:</strong> Displaying 30+ standardized Windows Security Event Logs (Events 4624, 4625, 4688, 4672, 7045, 1102) capturing both normal baseline behavior and the active credential compromise attack chain.
+      </span>
+    </div>
+    <span class="badge badge-secondary">Safe RFC1918 Scope</span>
+  </div>
+
+  <!-- Table Container with Filter Bar -->
+  <div class="table-container">
+    <div class="table-header-bar">
+      
+      <!-- Search Input -->
+      <div class="search-input-wrapper">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="logSearchInput" class="search-input" placeholder="Search user, IP, process, action..." value="{{ search_query }}">
+      </div>
+
+      <!-- Quick Filter Buttons -->
+      <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+        <button type="button" class="btn btn-outline btn-sm quick-filter-btn {% if not selected_suspicious %}active{% endif %}" data-filter="all">
+          Show All ({{ logs|length }})
+        </button>
+        <button type="button" class="btn btn-danger btn-sm quick-filter-btn {% if selected_suspicious == '1' %}active{% endif %}" data-filter="suspicious">
+          <i class="fa-solid fa-triangle-exclamation"></i> Suspicious Only
+        </button>
+        <button type="button" class="btn btn-outline btn-sm quick-filter-btn" data-filter="powershell">
+          <i class="fa-solid fa-terminal"></i> PowerShell
+        </button>
+        <button type="button" class="btn btn-outline btn-sm quick-filter-btn" data-filter="auth">
+          <i class="fa-solid fa-key"></i> Logins (4624/4625)
+        </button>
+      </div>
+
+      <!-- Dropdown Filters (Server-side & URL Sync) -->
+      <form method="GET" action="{{ url_for('logs') }}" class="filters-group">
+        
+        <!-- Filter by Severity -->
+        <select name="severity" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Severities</option>
+          <option value="LOW" {% if selected_severity == 'LOW' %}selected{% endif %}>LOW</option>
+          <option value="MEDIUM" {% if selected_severity == 'MEDIUM' %}selected{% endif %}>MEDIUM</option>
+          <option value="HIGH" {% if selected_severity == 'HIGH' %}selected{% endif %}>HIGH</option>
+          <option value="CRITICAL" {% if selected_severity == 'CRITICAL' %}selected{% endif %}>CRITICAL</option>
+        </select>
+
+        <!-- Filter by Event ID -->
+        <select name="event_id" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Event IDs</option>
+          {% for eid in event_ids %}
+            <option value="{{ eid }}" {% if selected_event_id == eid|string %}selected{% endif %}>
+              Event {{ eid }}
+            </option>
+          {% endfor %}
+        </select>
+
+        <!-- Filter by Source IP -->
+        <select name="ip" class="filter-select" onchange="this.form.submit()">
+          <option value="">All Source IPs</option>
+          {% for ip in ip_list %}
+            <option value="{{ ip }}" {% if selected_ip == ip %}selected{% endif %}>
+              {{ ip }}
+            </option>
+          {% endfor %}
+        </select>
+
+        {% if selected_severity or selected_event_id or selected_ip or search_query %}
+          <a href="{{ url_for('logs') }}" class="btn btn-outline btn-sm" title="Clear Filters">
+            <i class="fa-solid fa-xmark"></i> Clear
+          </a>
+        {% endif %}
+      </form>
+
+    </div>
+
+    <!-- Windows SIEM Logs Table -->
+    <div style="overflow-x: auto;">
+      <table class="custom-table" id="siemLogsTable">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Event ID</th>
+            <th>Username</th>
+            <th>Source IP</th>
+            <th>Destination IP</th>
+            <th>Action</th>
+            <th>Status</th>
+            <th>Process / Command</th>
+            <th>Severity</th>
+            <th>Triage</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if logs %}
+            {% for log in logs %}
+            <tr class="log-row {% if log.is_suspicious %}suspicious-row{% endif %}"
+                data-raw="{{ log.raw_log }}"
+                data-timestamp="{{ log.timestamp }}"
+                data-eventid="{{ log.event_id }}"
+                data-user="{{ log.username }}"
+                data-action="{{ log.action }}"
+                data-severity="{{ log.severity }}"
+                data-process="{{ log.process }}"
+                data-suspicious="{{ log.is_suspicious }}"
+                title="Click to inspect raw Windows JSON / XML log event">
+              
+              <td class="font-mono" style="white-space: nowrap; color: var(--text-secondary); font-size: 0.78rem;">
+                {{ log.timestamp }}
+              </td>
+
+              <td>
+                <span class="font-mono" style="font-weight: 700; color: #fff;">
+                  {{ log.event_id }}
+                </span>
+                <div style="font-size: 0.68rem; color: var(--text-muted);">
+                  {% if log.event_id == 4624 %}Logon
+                  {% elif log.event_id == 4625 %}Failed Logon
+                  {% elif log.event_id == 4688 %}Process Create
+                  {% elif log.event_id == 4672 %}Special Privs
+                  {% elif log.event_id == 7045 %}Service Install
+                  {% elif log.event_id == 1102 %}Log Cleared
+                  {% elif log.event_id == 4634 %}Logoff
+                  {% else %}Security Event{% endif %}
+                </div>
+              </td>
+
+              <td>
+                <span class="font-mono" style="color: {% if log.username == 'jdoe' %}#f87171{% else %}#fff{% endif %}; font-weight: 600;">
+                  {{ log.username }}
+                </span>
+              </td>
+
+              <td class="font-mono" style="color: {% if log.source_ip == '192.168.10.45' %}var(--accent-amber){% else %}var(--text-secondary){% endif %};">
+                {{ log.source_ip }}
+              </td>
+
+              <td class="font-mono" style="color: var(--text-muted);">
+                {{ log.destination_ip }}
+              </td>
+
+              <td style="font-weight: 500;">
+                {{ log.action }}
+              </td>
+
+              <td>
+                {% if log.status == 'Success' %}
+                  <span class="badge badge-success">Success</span>
+                {% elif log.status == 'Failure' %}
+                  <span class="badge badge-high">Failure</span>
+                {% else %}
+                  <span class="badge badge-secondary">{{ log.status }}</span>
+                {% endif %}
+              </td>
+
+              <td style="max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ log.command_line or log.process }}">
+                <span class="font-mono" style="font-size: 0.78rem; color: {% if 'powershell' in (log.process or '').lower() %}var(--accent-cyan){% else %}var(--text-secondary){% endif %};">
+                  {{ log.process or '-' }}
+                </span>
+                {% if log.command_line %}
+                  <div style="font-size: 0.7rem; color: var(--text-muted); text-overflow: ellipsis; overflow: hidden;">
+                    {{ log.command_line }}
+                  </div>
+                {% endif %}
+              </td>
+
+              <td>
+                <span class="badge badge-{{ log.severity.lower() }}">{{ log.severity }}</span>
+              </td>
+
+              <td>
+                <button type="button" class="btn btn-outline btn-sm" style="padding: 0.2rem 0.5rem;" title="Inspect raw SIEM JSON">
+                  <i class="fa-solid fa-code"></i>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="10" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                <i class="fa-solid fa-magnifying-glass" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i>
+                No SIEM log records found matching your filter criteria.
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Table Footer / Row counter -->
+    <div style="padding: 0.75rem 1.5rem; background-color: rgba(15, 23, 42, 0.4); border-top: 1px solid var(--bg-surface-border); display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; color: var(--text-muted);">
+      <div>Showing <strong>{{ logs|length }}</strong> security log events</div>
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <span><span style="display:inline-block; width: 10px; height: 10px; background-color: rgba(239, 68, 68, 0.2); border: 1px solid var(--accent-red); margin-right: 4px;"></span> Highlighted Rows = Suspicious Events</span>
+      </div>
+    </div>
+  </div>
+{% endblock %}

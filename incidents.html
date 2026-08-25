@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Incidents Triage Center{% endblock %}
+
+{% block page_title %}
+  <i class="fa-solid fa-magnifying-glass-chart" style="color: var(--accent-cyan);"></i> Security Incidents Directory
+{% endblock %}
+
+{% block content %}
+  <div class="table-container">
+    <div class="table-header-bar">
+      <div>
+        <strong style="color: #fff; font-size: 1rem;">Active & Historical Security Incidents</strong>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Correlated high-fidelity multi-stage attack campaigns</div>
+      </div>
+    </div>
+
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Incident ID</th>
+          <th>Incident Title</th>
+          <th>Attack Classification</th>
+          <th>Target System / User</th>
+          <th>Attacker Source IP</th>
+          <th>Severity</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inc in incidents %}
+        <tr>
+          <td><strong class="font-mono" style="color: var(--accent-cyan);">{{ inc.id }}</strong></td>
+          <td style="font-weight: 600; color: #fff;">{{ inc.title }}</td>
+          <td><span class="badge badge-secondary">{{ inc.attack_type }}</span></td>
+          <td class="font-mono">{{ inc.affected_system }} / {{ inc.affected_user }}</td>
+          <td class="font-mono" style="color: var(--accent-amber);">{{ inc.source_ip }}</td>
+          <td><span class="badge badge-{{ inc.severity.lower() }}">{{ inc.severity }}</span></td>
+          <td><span class="badge badge-warning">{{ inc.incident_status }}</span></td>
+          <td>
+            <a href="{{ url_for('incident_detail', incident_id=inc.id) }}" class="btn btn-primary btn-sm">
+              <i class="fa-solid fa-magnifying-glass"></i> Investigate
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

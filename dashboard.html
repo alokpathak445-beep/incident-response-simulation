@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}SOC Executive Dashboard{% endblock %}
+
+{% block page_title %}
+  <i class="fa-solid fa-gauge-high" style="color: var(--accent-cyan);"></i> SOC Executive Dashboard
+{% endblock %}
+
+{% block content %}
+  <!-- Top KPI Metrics Grid -->
+  <div class="metrics-grid">
+    <div class="metric-card cyan">
+      <div class="metric-header">
+        <span class="metric-title">Total Logs Analyzed</span>
+        <span class="metric-icon" style="color: var(--accent-cyan);"><i class="fa-solid fa-server"></i></span>
+      </div>
+      <div class="metric-value">{{ metrics.total_logs }}</div>
+      <div class="metric-subtext"><i class="fa-solid fa-circle-check" style="color: var(--accent-green);"></i> Windows SIEM Logs Ingested</div>
+    </div>
+
+    <div class="metric-card warning">
+      <div class="metric-header">
+        <span class="metric-title">Suspicious Events</span>
+        <span class="metric-icon" style="color: var(--accent-amber);"><i class="fa-solid fa-triangle-exclamation"></i></span>
+      </div>
+      <div class="metric-value">{{ metrics.suspicious_events }}</div>
+      <div class="metric-subtext"><i class="fa-solid fa-filter"></i> High & Critical Risk Events</div>
+    </div>
+
+    <div class="metric-card danger">
+      <div class="metric-header">
+        <span class="metric-title">Critical Alerts</span>
+        <span class="metric-icon" style="color: var(--accent-red);"><i class="fa-solid fa-radiation"></i></span>
+      </div>
+      <div class="metric-value">{{ metrics.critical_alerts }}</div>
+      <div class="metric-subtext"><i class="fa-solid fa-bolt"></i> Requiring Immediate Containment</div>
+    </div>
+
+    <div class="metric-card purple">
+      <div class="metric-header">
+        <span class="metric-title">Detected IOCs</span>
+        <span class="metric-icon" style="color: var(--accent-purple);"><i class="fa-solid fa-fingerprint"></i></span>
+      </div>
+      <div class="metric-value">{{ metrics.total_iocs }}</div>
+      <div class="metric-subtext"><i class="fa-solid fa-network-wired"></i> Correlated Threat Indicators</div>
+    </div>
+
+    <div class="metric-card danger">
+      <div class="metric-header">
+        <span class="metric-title">Incident Status</span>
+        <span class="metric-icon" style="color: var(--accent-red);"><i class="fa-solid fa-fire"></i></span>
+      </div>
+      <div class="metric-value" style="font-size: 1.3rem; margin-top: 0.35rem; color: #f87171;">
+        {{ metrics.incident_status }}
+      </div>
+      <div class="metric-subtext">Incident ID: <strong>INC-2026-001</strong></div>
+    </div>
+  </div>
+
+  <!-- Active Incident Alert Banner -->
+  <div style="background: linear-gradient(90deg, rgba(220, 38, 38, 0.15), rgba(17, 24, 39, 0.8)); border: 1px solid rgba(239, 68, 68, 0.4); border-left: 5px solid var(--accent-red); border-radius: var(--border-radius); padding: 1.25rem 1.5rem; margin-bottom: 2rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+        <span class="badge badge-critical">CRITICAL INCIDENT</span>
+        <strong style="color: #fff; font-size: 1.05rem;">{{ primary_incident.title }}</strong>
+      </div>
+      <p style="color: var(--text-secondary); font-size: 0.85rem; max-width: 850px;">
+        Target System: <span class="font-mono" style="color: #fff;">{{ primary_incident.affected_system }}</span> |
+        Compromised User: <span class="font-mono" style="color: #fff;">{{ primary_incident.affected_user }}</span> |
+        Attacker IP: <span class="font-mono" style="color: var(--accent-amber);">{{ primary_incident.source_ip }}</span>
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.75rem;">
+      <a href="{{ url_for('incident_detail', incident_id='INC-2026-001') }}" class="btn btn-outline btn-sm">
+        <i class="fa-solid fa-magnifying-glass"></i> Investigate
+      </a>
+      <a href="{{ url_for('response_workflow') }}" class="btn btn-danger btn-sm">
+        <i class="fa-solid fa-shield-halved"></i> Execute Containment
+      </a>
+    </div>
+  </div>
+
+  <!-- Security Analytics 4-Chart Grid -->
+  <div class="charts-grid">
+    
+    <!-- Chart 1: Login Attempts Over Time -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-title"><i class="fa-solid fa-chart-line" style="color: var(--accent-cyan);"></i> Authentication Activity Timeline</div>
+          <div class="chart-subtitle">Event 4624 (Logon) vs Event 4625 (Failed Logon) per time bucket</div>
+        </div>
+        <span class="badge badge-secondary">SIEM Live</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="loginTimelineChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 2: Failed vs Successful Logins -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-title"><i class="fa-solid fa-chart-pie" style="color: var(--accent-green);"></i> Authentication Outcome Distribution</div>
+          <div class="chart-subtitle">Proportion of Successes vs Brute-force Failures</div>
+        </div>
+        <span class="badge badge-secondary">Ratio Analysis</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="authDoughnutChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 3: Event Severity Distribution -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-title"><i class="fa-solid fa-chart-column" style="color: var(--accent-amber);"></i> Event Severity Breakdown</div>
+          <div class="chart-subtitle">Simulated Windows Security Log volume categorized by risk</div>
+        </div>
+        <span class="badge badge-secondary">Triage Matrix</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="severityBarChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 4: Suspicious Activity Timeline / Attack Progression -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-title"><i class="fa-solid fa-shield-virus" style="color: var(--accent-red);"></i> MITRE ATT&CK Attack Progression</div>
+          <div class="chart-subtitle">Rule-based anomaly distribution along the cyber kill chain</div>
+        </div>
+        <span class="badge badge-secondary">Kill Chain</span>
+      </div>
+      <div class="chart-container">
+        <canvas id="attackStagesChart"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Lower Section: Recent Anomalies & Recent Log Stream -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 1.5rem;">
+    
+    <!-- Recent Detected Anomalies -->
+    <div class="table-container" style="margin-bottom: 0;">
+      <div class="table-header-bar">
+        <div>
+          <strong style="color: #fff; font-size: 0.95rem;"><i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-amber);"></i> Recent Rule-Based Anomalies</strong>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Real-time alerts triggered by SIEM correlation engine</div>
+        </div>
+        <a href="{{ url_for('anomalies') }}" class="btn btn-outline btn-sm">View All ({{ metrics.critical_alerts + 3 }})</a>
+      </div>
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Anomaly Code</th>
+            <th>Rule Name</th>
+            <th>Severity</th>
+            <th>Target User</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for anom in recent_anomalies %}
+          <tr>
+            <td><strong class="font-mono" style="color: var(--accent-cyan);">{{ anom.anomaly_code }}</strong></td>
+            <td style="font-weight: 600;">{{ anom.title }}</td>
+            <td>
+              <span class="badge badge-{{ anom.severity.lower() }}">{{ anom.severity }}</span>
+            </td>
+            <td class="font-mono">{{ anom.username }}</td>
+            <td>
+              <a href="{{ url_for('anomalies') }}" class="btn btn-outline btn-sm" style="padding: 0.2rem 0.5rem;">
+                <i class="fa-solid fa-arrow-right"></i>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Live Ingested Windows Logs -->
+    <div class="table-container" style="margin-bottom: 0;">
+      <div class="table-header-bar">
+        <div>
+          <strong style="color: #fff; font-size: 0.95rem;"><i class="fa-solid fa-list" style="color: var(--accent-cyan);"></i> Ingested Security Events</strong>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">Recent simulated Windows SIEM events (Click row to inspect)</div>
+        </div>
+        <a href="{{ url_for('logs') }}" class="btn btn-outline btn-sm">Log Explorer</a>
+      </div>
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Event ID</th>
+            <th>Action / Process</th>
+            <th>User</th>
+            <th>Severity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in recent_logs %}
+          <tr class="log-row {% if log.is_suspicious %}suspicious-row{% endif %}"
+              data-raw="{{ log.raw_log }}"
+              data-timestamp="{{ log.timestamp }}"
+              data-eventid="{{ log.event_id }}"
+              data-user="{{ log.username }}"
+              data-action="{{ log.action }}"
+              data-severity="{{ log.severity }}"
+              data-process="{{ log.process }}">
+            <td class="font-mono" style="color: var(--text-muted); font-size: 0.75rem;">{{ log.timestamp[11:19] }}</td>
+            <td><span class="font-mono" style="font-weight: 700;">{{ log.event_id }}</span></td>
+            <td>{{ log.action }}</td>
+            <td class="font-mono">{{ log.username }}</td>
+            <td><span class="badge badge-{{ log.severity.lower() }}">{{ log.severity }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+{% endblock %}
+
+{% block extra_scripts %}
+  <script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+{% endblock %}

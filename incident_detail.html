@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Incident Investigation - {{ incident.id }}{% endblock %}
+
+{% block page_title %}
+  <i class="fa-solid fa-magnifying-glass-chart" style="color: var(--accent-cyan);"></i> Incident Investigation: {{ incident.id }}
+{% endblock %}
+
+{% block content %}
+  <!-- Incident Overview Header Card -->
+  <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98)); border: 1px solid var(--bg-surface-border); border-radius: var(--border-radius-lg); padding: 1.75rem; margin-bottom: 2rem; box-shadow: var(--shadow-card);">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.25rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+          <span class="badge badge-critical font-mono" style="font-size: 0.85rem;">{{ incident.severity }} SEVERITY</span>
+          <span class="badge badge-warning" id="incidentStatusBadge">{{ incident.incident_status }}</span>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Lead: <strong>{{ incident.assigned_analyst }}</strong></span>
+        </div>
+        <h2 style="font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem;">
+          {{ incident.title }}
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; max-width: 900px; line-height: 1.6;">
+          {{ incident.summary }}
+        </p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <a href="{{ url_for('response_workflow') }}" class="btn btn-danger">
+          <i class="fa-solid fa-shield-virus"></i> Open Containment Playbook
+        </a>
+        <a href="{{ url_for('report', incident_id=incident.id) }}" class="btn btn-outline">
+          <i class="fa-solid fa-file-pdf"></i> Generate Final Report
+        </a>
+      </div>
+    </div>
+
+    <!-- Incident Metadata Attributes Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; background-color: rgba(15, 23, 42, 0.6); padding: 1rem 1.25rem; border-radius: var(--border-radius-sm); border: 1px solid var(--bg-surface-border);">
+      <div>
+        <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Affected Workstation</span>
+        <div class="font-mono" style="color: #fff; font-weight: 700; font-size: 0.95rem;">{{ incident.affected_system }}</div>
+      </div>
+      <div>
+        <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Compromised Account</span>
+        <div class="font-mono" style="color: #f87171; font-weight: 700; font-size: 0.95rem;">{{ incident.affected_user }}</div>
+      </div>
+      <div>
+        <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Attacker Source IP</span>
+        <div class="font-mono" style="color: var(--accent-amber); font-weight: 700; font-size: 0.95rem;">{{ incident.source_ip }}</div>
+      </div>
+      <div>
+        <span style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">First Detection Time</span>
+        <div class="font-mono" style="color: var(--accent-cyan); font-weight: 600; font-size: 0.85rem;">{{ incident.detection_time }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Incident Timeline & Attack Progression Section -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+    
+    <!-- Chronological Event Timeline -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-title"><i class="fa-solid fa-timeline" style="color: var(--accent-cyan);"></i> Chronological Incident Timeline</div>
+          <div class="chart-subtitle">Reconstructed progression of attacker activity</div>
+        </div>
+        <span class="badge badge-secondary">6 Stages</span>
+      </div>
+
+      <div class="timeline-stepper">
+        
+        <!-- Step 1 -->
+        <div class="timeline-step-item">
+          <div class="timeline-dot danger">1</div>
+          <div class="timeline-content">
+            <div class="timeline-time">09:41:02 - 09:42:25 (Event ID 4625)</div>
+            <div class="timeline-step-title">Multiple Failed Login Attempts Detected</div>
+            <div class="timeline-step-desc">
+              6 consecutive failed authentication attempts against user <code>jdoe</code> from host <code>192.168.10.45</code> triggering Brute-Force threshold.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="timeline-step-item">
+          <div class="timeline-dot danger">2</div>
+          <div class="timeline-content">
+            <div class="timeline-time">09:43:10 (Event ID 4624)</div>
+            <div class="timeline-step-title">Successful RemoteInteractive Login Detected</div>
+            <div class="timeline-step-desc">
+              Attacker successfully authenticated via NTLM LogonType 10 from the same source IP <code>192.168.10.45</code>.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="timeline-step-item">
+          <div class="timeline-dot danger">3</div>
+          <div class="timeline-content">
+            <div class="timeline-time">09:44:45 (Event ID 4688)</div>
+            <div class="timeline-step-title">Suspicious PowerShell Activity Detected</div>
+            <div class="timeline-step-desc">
+              Spawned <code>powershell.exe</code> with encoded download cradle payload retrieving <code>http://192.168.10.45/script.ps1</code>.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="timeline-step-item">
+          <div class="timeline-dot danger">4</div>
+          <div class="timeline-content">
+            <div class="timeline-time">09:45:50 - 09:46:15 (Event ID 4672 & 4688)</div>
+            <div class="timeline-step-title">Privileged Action Attempted & Admin Group Mod</div>
+            <div class="timeline-step-desc">
+              Assigned <code>SeDebugPrivilege</code> and executed <code>net localgroup administrators jdoe /add</code> for local privilege escalation.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="timeline-step-item">
+          <div class="timeline-dot warning">5</div>
+          <div class="timeline-content">
+            <div class="timeline-time">09:48:30 (Event ID 1102)</div>
+            <div class="timeline-step-title">Defense Evasion - Audit Log Clear Attempt</div>
+            <div class="timeline-step-desc">
+              Attacker attempted to clear Windows Security log to obscure trace evidence. SIEM correlation alert generated.
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 6 -->
+        <div class="timeline-step-item">
+          <div class="timeline-dot success">6</div>
+          <div class="timeline-content">
+            <div class="timeline-time">09:50:00 (SOC Triage)</div>
+            <div class="timeline-step-title">Analyst Begins Investigation & Containment</div>
+            <div class="timeline-step-desc">
+              Tier 2 SOC Incident Commander activated incident response playbook and initiated host quarantine.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Analyst Investigation Journal Notebook -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div>
+          <div class="chart-title"><i class="fa-solid fa-book-journal-whills" style="color: var(--accent-amber);"></i> Analyst Investigation Journal</div>
+          <div class="chart-subtitle">Live notes, evidence logs, and hypothesis tracking</div>
+        </div>
+        <span class="badge badge-secondary">Audit Trail</span>
+      </div>
+
+      <!-- Add Note Form -->
+      <form id="addNoteForm" style="margin-bottom: 1.5rem;">
+        <input type="hidden" id="noteIncidentId" value="{{ incident.id }}">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+          <input type="text" id="noteAuthor" class="search-input" value="SOC Analyst Alok" placeholder="Analyst Name" required>
+          <select id="noteType" class="filter-select" style="width: 100%;">
+            <option value="Observation">Observation</option>
+            <option value="Triage Finding">Triage Finding</option>
+            <option value="Containment Action">Containment Action</option>
+            <option value="Forensic Artifact">Forensic Artifact</option>
+          </select>
+        </div>
+        <textarea id="noteText" class="search-input" rows="3" placeholder="Enter investigation observation or containment finding..." style="width: 100%; resize: vertical; margin-bottom: 0.75rem;" required></textarea>
+        <button type="submit" class="btn btn-primary btn-sm" style="width: 100%;">
+          <i class="fa-solid fa-plus"></i> Add Note to Investigation Journal
+        </button>
+      </form>
+
+      <!-- Existing Notes List -->
+      <div id="notesList" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;">
+        {% for note in notes %}
+        <div class="timeline-content" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+            <strong style="color: var(--accent-cyan); font-size: 0.85rem;">
+              {{ note.author }} <span style="color: var(--text-muted); font-size: 0.75rem;">({{ note.note_type }})</span>
+            </strong>
+            <span class="font-mono" style="font-size: 0.72rem; color: var(--text-muted);">{{ note.timestamp }}</span>
+          </div>
+          <p style="font-size: 0.85rem; color: #f3f4f6; line-height: 1.4;">{{ note.note_text }}</p>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Related Correlated Suspicious Logs Table -->
+  <div class="table-container">
+    <div class="table-header-bar">
+      <div>
+        <strong style="color: #fff; font-size: 1rem;"><i class="fa-solid fa-link" style="color: var(--accent-red);"></i> Correlated Suspicious SIEM Logs ({{ logs|length }} Events)</strong>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Logs directly attributed to the attack chain on workstation WS-FIN-042</div>
+      </div>
+      <a href="{{ url_for('logs', ip='192.168.10.45') }}" class="btn btn-outline btn-sm">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open in Log Explorer
+      </a>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Event ID</th>
+            <th>Username</th>
+            <th>Source IP</th>
+            <th>Action</th>
+            <th>Process / Command</th>
+            <th>Severity</th>
+            <th>Attack Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr class="log-row suspicious-row"
+              data-raw="{{ log.raw_log }}"
+              data-timestamp="{{ log.timestamp }}"
+              data-eventid="{{ log.event_id }}"
+              data-user="{{ log.username }}"
+              data-action="{{ log.action }}"
+              data-severity="{{ log.severity }}"
+              data-process="{{ log.process }}">
+            <td class="font-mono" style="font-size: 0.78rem; color: var(--text-secondary);">{{ log.timestamp[11:19] }}</td>
+            <td class="font-mono" style="font-weight: 700;">{{ log.event_id }}</td>
+            <td class="font-mono" style="color: #f87171;">{{ log.username }}</td>
+            <td class="font-mono" style="color: var(--accent-amber);">{{ log.source_ip }}</td>
+            <td>{{ log.action }}</td>
+            <td style="max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" class="font-mono" style="font-size: 0.75rem;">
+              {{ log.command_line or log.process }}
+            </td>
+            <td><span class="badge badge-{{ log.severity.lower() }}">{{ log.severity }}</span></td>
+            <td>
+              <span class="badge badge-secondary" style="font-size: 0.7rem;">{{ log.anomaly_tag }}</span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endblock %}

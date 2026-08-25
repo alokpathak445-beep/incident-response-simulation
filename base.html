@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SOC Incident Response Simulation{% endblock %} | CyberDefense SOC</title>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Custom Dark Theme Stylesheet -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div>
+          <div class="sidebar-brand-title">CYBER DEFENSE</div>
+          <div class="sidebar-brand-sub">SOC IR Platform</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">SOC Operations</div>
+        
+        <a href="{{ url_for('dashboard') }}" class="nav-item {% if current_page == 'dashboard' %}active{% endif %}">
+          <div class="nav-item-left">
+            <span class="nav-icon"><i class="fa-solid fa-gauge-high"></i></span>
+            <span>Dashboard</span>
+          </div>
+        </a>
+
+        <a href="{{ url_for('logs') }}" class="nav-item {% if current_page == 'logs' %}active{% endif %}">
+          <div class="nav-item-left">
+            <span class="nav-icon"><i class="fa-solid fa-list-check"></i></span>
+            <span>Log Analysis</span>
+          </div>
+          <span class="nav-badge">{{ metrics.total_logs }}</span>
+        </a>
+
+        <a href="{{ url_for('anomalies') }}" class="nav-item {% if current_page == 'anomalies' %}active{% endif %}">
+          <div class="nav-item-left">
+            <span class="nav-icon"><i class="fa-solid fa-triangle-exclamation"></i></span>
+            <span>Detected Anomalies</span>
+          </div>
+          <span class="nav-badge danger">{{ metrics.critical_alerts }}</span>
+        </a>
+
+        <a href="{{ url_for('iocs') }}" class="nav-item {% if current_page == 'iocs' %}active{% endif %}">
+          <div class="nav-item-left">
+            <span class="nav-icon"><i class="fa-solid fa-fingerprint"></i></span>
+            <span>IOC Detection</span>
+          </div>
+          <span class="nav-badge warning">{{ metrics.total_iocs }}</span>
+        </a>
+
+        <div class="nav-section-label" style="margin-top: 0.75rem;">Incident Triage</div>
+
+        <a href="{{ url_for('incident_detail', incident_id='INC-2026-001') }}" class="nav-item {% if current_page == 'incidents' %}active{% endif %}">
+          <div class="nav-item-left">
+            <span class="nav-icon"><i class="fa-solid fa-magnifying-glass-chart"></i></span>
+            <span>Investigation Room</span>
+          </div>
+          <span class="nav-badge danger">INC-001</span>
+        </a>
+
+        <a href="{{ url_for('response_workflow') }}" class="nav-item {% if current_page == 'response' %}active{% endif %}">
+          <div class="nav-item-left">
+            <span class="nav-icon"><i class="fa-solid fa-shield-virus"></i></span>
+            <span>Response & Containment</span>
+          </div>
+        </a>
+
+        <a href="{{ url_for('report', incident_id='INC-2026-001') }}" class="nav-item {% if current_page == 'report' %}active{% endif %}">
+          <div class="nav-item-left">
+            <span class="nav-icon"><i class="fa-solid fa-file-shield"></i></span>
+            <span>Incident Report</span>
+          </div>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="analyst-card">
+          <div class="analyst-avatar">AR</div>
+          <div class="analyst-info">
+            <div class="analyst-name">Alok Raj</div>
+            <div class="analyst-role">SOC Incident Commander</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      
+      <!-- Top Bar Header -->
+      <header class="top-header">
+        <div class="header-left">
+          <div class="header-page-title">
+            {% block page_title %}<i class="fa-solid fa-gauge"></i> SOC Dashboard{% endblock %}
+          </div>
+          
+          <div class="status-pill">
+            <span class="pulse-dot"></span>
+            <span>INCIDENT IN PROGRESS: INC-2026-001</span>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <button type="button" class="btn btn-outline btn-sm btn-reset-sim" title="Reset Simulation Data">
+            <i class="fa-solid fa-rotate-right"></i> Reset Simulation
+          </button>
+          
+          <a href="{{ url_for('report', incident_id='INC-2026-001') }}" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-file-pdf"></i> Generate Report
+          </a>
+        </div>
+      </header>
+
+      <!-- Page Specific Content -->
+      <div class="page-body">
+        {% block content %}{% endblock %}
+      </div>
+
+      <!-- Educational Footer -->
+      <footer class="app-footer">
+        <div>
+          Cybersecurity Incident Response Simulation | <span class="footer-highlight">Educational Project</span> | All data is simulated
+        </div>
+        <div style="font-size: 0.72rem; color: #4b5563;">
+          Designed for B.Tech Cybersecurity Capstone Demo & Viva • Windows Event Log SIEM Emulation • RFC 1918 Safe Scope
+        </div>
+      </footer>
+    </main>
+
+  </div>
+
+  <!-- Raw Log Details Modal -->
+  <div class="modal-backdrop" id="logDetailModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-title" id="modalEventId">Event Details</div>
+        <button class="modal-close-btn" id="closeLogModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.75rem; display: block;">TIMESTAMP</span>
+            <strong id="modalTimestamp" class="font-mono">-</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.75rem; display: block;">SEVERITY</span>
+            <span id="modalSeverity" class="badge badge-low">LOW</span>
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.75rem; display: block;">USER ACCOUNT</span>
+            <strong id="modalUser" class="font-mono">-</strong>
+          </div>
+          <div>
+            <span style="color: var(--text-muted); font-size: 0.75rem; display: block;">SPAWNED PROCESS</span>
+            <strong id="modalProcess" class="font-mono">-</strong>
+          </div>
+        </div>
+
+        <span style="color: var(--text-muted); font-size: 0.75rem; display: block; margin-bottom: 0.4rem;">
+          RAW WINDOWS SIEM EVENT JSON (SIMULATED PAYLOAD)
+        </span>
+        <pre class="raw-json-box" id="modalRawJson"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Javascript Scripts -->
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

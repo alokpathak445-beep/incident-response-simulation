@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+
+{% block title %}Incident Response & Containment Console{% endblock %}
+
+{% block page_title %}
+  <i class="fa-solid fa-shield-virus" style="color: var(--accent-green);"></i> Incident Response & Containment Console
+{% endblock %}
+
+{% block content %}
+  <!-- Framework Overview & Progress Banner -->
+  <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95)); border: 1px solid var(--bg-surface-border); border-radius: var(--border-radius-lg); padding: 1.5rem 1.75rem; margin-bottom: 2rem;">
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.35rem;">
+          <span class="badge badge-success">NIST SP 800-61 / SANS PLAYBOOK</span>
+          <strong style="font-size: 1.15rem; color: #fff;">Containment, Eradication & Recovery Workflow</strong>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 800px;">
+          Execute safe, simulated incident mitigation actions to isolate compromised assets, neutralize persistence mechanisms, and return systems to verified baseline operations.
+        </p>
+      </div>
+
+      <!-- Action status metrics -->
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <div style="text-align: right;">
+          <div style="font-size: 0.75rem; color: var(--text-muted);">PLAYBOOK COMPLETION</div>
+          <div class="font-mono" style="font-size: 1.3rem; font-weight: 800; color: var(--accent-green);">
+            {{ completed_actions }} / {{ total_actions }} ({{ progress_percent }}%)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div style="background-color: var(--bg-surface); border-radius: 999px; height: 8px; width: 100%; overflow: hidden;">
+      <div style="width: {{ progress_percent }}%; background: linear-gradient(90deg, #10b981, #00f2fe); height: 100%; border-radius: 999px; transition: width 0.4s ease;"></div>
+    </div>
+  </div>
+
+  <!-- NIST / SANS 6-Phases Visual Workflow Steps -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-bottom: 2rem;">
+    <div style="background: var(--bg-card); border: 1px solid var(--bg-surface-border); border-radius: var(--border-radius-sm); padding: 0.85rem; text-align: center;">
+      <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">PHASE 1</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">Preparation</div>
+      <span class="badge badge-success" style="margin-top: 0.35rem; font-size: 0.65rem;">Active Policy</span>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--bg-surface-border); border-radius: var(--border-radius-sm); padding: 0.85rem; text-align: center;">
+      <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">PHASE 2</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">Detection</div>
+      <span class="badge badge-critical" style="margin-top: 0.35rem; font-size: 0.65rem;">Triggered</span>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--bg-surface-border); border-radius: var(--border-radius-sm); padding: 0.85rem; text-align: center;">
+      <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">PHASE 3</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">Analysis</div>
+      <span class="badge badge-success" style="margin-top: 0.35rem; font-size: 0.65rem;">Completed</span>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--accent-cyan); border-radius: var(--border-radius-sm); padding: 0.85rem; text-align: center; box-shadow: 0 0 10px rgba(0,242,254,0.2);">
+      <div style="font-size: 0.7rem; color: var(--accent-cyan); font-weight: 700;">PHASE 4</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-cyan);">Containment</div>
+      <span class="badge badge-warning" style="margin-top: 0.35rem; font-size: 0.65rem;">In Progress</span>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--bg-surface-border); border-radius: var(--border-radius-sm); padding: 0.85rem; text-align: center;">
+      <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">PHASE 5</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">Eradication</div>
+      <span class="badge badge-secondary" style="margin-top: 0.35rem; font-size: 0.65rem;">Pending</span>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--bg-surface-border); border-radius: var(--border-radius-sm); padding: 0.85rem; text-align: center;">
+      <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">PHASE 6</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">Recovery</div>
+      <span class="badge badge-secondary" style="margin-top: 0.35rem; font-size: 0.65rem;">Pending</span>
+    </div>
+
+    <div style="background: var(--bg-card); border: 1px solid var(--bg-surface-border); border-radius: var(--border-radius-sm); padding: 0.85rem; text-align: center;">
+      <div style="font-size: 0.7rem; color: var(--text-muted); font-weight: 700;">PHASE 7</div>
+      <div style="font-size: 0.85rem; font-weight: 700; color: #fff;">Lessons Learned</div>
+      <span class="badge badge-secondary" style="margin-top: 0.35rem; font-size: 0.65rem;">Scheduled</span>
+    </div>
+  </div>
+
+  <!-- Interactive Containment Action Checklist Table -->
+  <div class="table-container">
+    <div class="table-header-bar">
+      <div>
+        <strong style="color: #fff; font-size: 1rem;"><i class="fa-solid fa-list-check" style="color: var(--accent-cyan);"></i> Safe Simulated Containment & Mitigation Checklist</strong>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Click "Simulate Execution" to run automated SOC containment scripts safely</div>
+      </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>IR Phase</th>
+            <th>Mitigation Procedure</th>
+            <th>Target Asset / Identity</th>
+            <th>Status Control</th>
+            <th>Execution Timestamp</th>
+            <th>Simulation Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for act in actions %}
+          <tr>
+            <td>
+              <span class="badge {% if act.phase == 'Containment' %}badge-high{% elif act.phase == 'Eradication' %}badge-warning{% else %}badge-secondary{% endif %}">
+                {{ act.phase }}
+              </span>
+            </td>
+
+            <td>
+              <strong style="color: #fff; font-size: 0.9rem; display: block; margin-bottom: 0.2rem;">
+                {{ act.action_title }}
+              </strong>
+              <div style="font-size: 0.78rem; color: var(--text-secondary); max-width: 360px;">
+                {{ act.description }}
+              </div>
+            </td>
+
+            <td>
+              <span class="font-mono" style="color: #38bdf8; font-weight: 600; font-size: 0.82rem;">
+                {{ act.target_entity }}
+              </span>
+            </td>
+
+            <td>
+              <select id="actionStatus_{{ act.id }}" class="filter-select action-status-select {% if act.status == 'Completed' %}badge-success{% elif act.status == 'In Progress' %}badge-warning{% endif %}" data-action-id="{{ act.id }}">
+                <option value="Pending" {% if act.status == 'Pending' %}selected{% endif %}>Pending</option>
+                <option value="In Progress" {% if act.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                <option value="Completed" {% if act.status == 'Completed' %}selected{% endif %}>Completed</option>
+              </select>
+            </td>
+
+            <td class="font-mono" style="font-size: 0.75rem; color: var(--text-muted);">
+              {{ act.executed_at or '-' }}
+            </td>
+
+            <td>
+              {% if act.status == 'Completed' %}
+                <button type="button" class="btn btn-outline btn-sm btn-execute-action" data-action-id="{{ act.id }}" data-action-title="{{ act.action_title }}">
+                  <i class="fa-solid fa-check"></i> Re-Run Sim
+                </button>
+              {% else %}
+                <button type="button" class="btn btn-primary btn-sm btn-execute-action" data-action-id="{{ act.id }}" data-action-title="{{ act.action_title }}">
+                  <i class="fa-solid fa-play"></i> Simulate Execution
+                </button>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Simulated SOC Execution Console Terminal -->
+  <div class="terminal-window">
+    <div class="terminal-header">
+      <div class="terminal-dots">
+        <span class="t-dot red"></span>
+        <span class="t-dot yellow"></span>
+        <span class="t-dot green"></span>
+      </div>
+      <div class="terminal-title">
+        <i class="fa-solid fa-terminal"></i> SOC Automated Containment Execution Engine (Simulated Environment)
+      </div>
+      <span style="font-size: 0.7rem; color: #10b981;">STATUS: READY</span>
+    </div>
+    <div class="terminal-body" id="socTerminalOutput">
+[2026-08-25 09:50:00] [SOC-SYS] Initialized Containment Playbook for Incident INC-2026-001.
+[2026-08-25 09:50:00] [SOC-SYS] Connected to simulated EDR agent on WS-FIN-042 and Firewall API FW-INTERNAL-01.
+[2026-08-25 09:51:15] [SUCCESS] Disabled user account 'jdoe' in Active Directory.
+[2026-08-25 09:52:00] [SUCCESS] Committed IP block rule: DROP ALL from 192.168.10.45.
+[2026-08-25 09:52:45] [SUCCESS] Terminated malicious powershell.exe and cmd.exe process tree on WS-FIN-042.
+[READY] Awaiting next containment command from Incident Commander...
+    </div>
+  </div>
+{% endblock %}

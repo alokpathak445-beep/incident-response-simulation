@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Suspicious Activity & Anomaly Detection{% endblock %}
+
+{% block page_title %}
+  <i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-amber);"></i> Suspicious Activity & Rule Detection
+{% endblock %}
+
+{% block content %}
+  <!-- Header Overview Banner -->
+  <div style="background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.95)); border: 1px solid var(--bg-surface-border); border-radius: var(--border-radius); padding: 1.5rem; margin-bottom: 2rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+    <div>
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+        <span class="badge badge-critical">{{ anomalies|length }} ACTIVE ANOMALIES</span>
+        <strong style="font-size: 1.15rem; color: #fff;">Rule-Based SIEM Correlation Engine</strong>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-secondary); max-width: 800px;">
+        The detection engine continuously correlates incoming Windows SIEM event streams against predefined rule criteria to flag credential access, unauthorized execution, and privilege escalation attacks.
+      </p>
+    </div>
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="{{ url_for('incident_detail', incident_id='INC-2026-001') }}" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-magnifying-glass-chart"></i> Correlate into Incident INC-001
+      </a>
+    </div>
+  </div>
+
+  <!-- Detected Anomalies Feed -->
+  <div class="anomalies-list" style="margin-bottom: 2.5rem;">
+    {% for anom in anomalies %}
+    <div class="anomaly-card sev-{{ anom.severity }}">
+      <div class="anomaly-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span class="anomaly-code-tag">{{ anom.anomaly_code }}</span>
+          <span class="badge badge-secondary">{{ anom.anomaly_type }}</span>
+        </div>
+        <span class="badge badge-{{ anom.severity.lower() }}">{{ anom.severity }} SEVERITY</span>
+      </div>
+
+      <div class="anomaly-title">{{ anom.title }}</div>
+
+      <!-- Metadata bar -->
+      <div class="anomaly-meta-bar">
+        <div class="meta-item">
+          <i class="fa-regular fa-clock" style="color: var(--accent-cyan);"></i>
+          <span>Detection Time: <strong class="font-mono" style="color: #fff;">{{ anom.detection_timestamp }}</strong></span>
+        </div>
+        <div class="meta-item">
+          <i class="fa-solid fa-network-wired" style="color: var(--accent-amber);"></i>
+          <span>Source IP: <strong class="font-mono" style="color: #fff;">{{ anom.source_ip }}</strong></span>
+        </div>
+        <div class="meta-item">
+          <i class="fa-solid fa-user-shield" style="color: #f87171;"></i>
+          <span>Target User: <strong class="font-mono" style="color: #fff;">{{ anom.username }}</strong></span>
+        </div>
+        <div class="meta-item">
+          <i class="fa-solid fa-circle-check" style="color: var(--accent-green);"></i>
+          <span>Engine Status: <strong style="color: #34d399;">{{ anom.status }}</strong></span>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="anomaly-desc">
+        {{ anom.description }}
+      </div>
+
+      <!-- Rule Triggered Box -->
+      <div class="anomaly-rule-box">
+        <span class="rule-label"><i class="fa-solid fa-code-fork"></i> SIEM Correlation Logic Triggered:</span>
+        <code style="color: #38bdf8; font-family: var(--font-mono); font-size: 0.8rem;">
+          {{ anom.rule_triggered }}
+        </code>
+      </div>
+
+      <!-- Recommended Action Box -->
+      <div class="action-box">
+        <i class="fa-solid fa-shield-virus" style="font-size: 1.1rem; margin-top: 2px;"></i>
+        <div>
+          <strong>Recommended SOC Response:</strong>
+          <div>{{ anom.recommended_action }}</div>
+        </div>
+      </div>
+
+      <!-- Direct Triage Link -->
+      <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <a href="{{ url_for('logs', ip=anom.source_ip) }}" class="btn btn-outline btn-sm">
+          <i class="fa-solid fa-filter"></i> Filter Related Logs
+        </a>
+        <a href="{{ url_for('response_workflow') }}" class="btn btn-danger btn-sm">
+          <i class="fa-solid fa-hand-holding-medical"></i> Take Containment Action
+        </a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Educational Section: Detection Rules Reference for College Project Viva -->
+  <div class="table-container">
+    <div class="table-header-bar">
+      <div>
+        <strong style="color: #fff; font-size: 1rem;"><i class="fa-solid fa-book-bookmark" style="color: var(--accent-cyan);"></i> SIEM Rule Engine Specifications & MITRE ATT&CK Matrix</strong>
+        <div style="font-size: 0.75rem; color: var(--text-muted);">Technical reference documentation for academic presentation and viva evaluation</div>
+      </div>
+      <span class="badge badge-secondary">5 Active Rules</span>
+    </div>
+    
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Rule ID</th>
+          <th>Detection Rule Name</th>
+          <th>MITRE ATT&CK Mapping</th>
+          <th>Detection Logic Criteria</th>
+          <th>Severity</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rule in detection_rules %}
+        <tr>
+          <td><strong class="font-mono" style="color: var(--accent-cyan);">{{ rule.id }}</strong></td>
+          <td style="font-weight: 600; color: #fff;">{{ rule.name }}</td>
+          <td>
+            <span class="badge badge-secondary font-mono" style="font-size: 0.72rem;">{{ rule.mitre_id }}</span>
+          </td>
+          <td style="font-size: 0.82rem; color: var(--text-secondary);">
+            {{ rule.condition }}
+          </td>
+          <td>
+            <span class="badge badge-{{ rule.severity.lower() }}">{{ rule.severity }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}
